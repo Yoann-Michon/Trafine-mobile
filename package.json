@@ -1,0 +1,39 @@
+{
+  "name": "trafine-mobile",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.3.13",
+    "@react-navigation/native": "^7.1.9",
+    "@react-navigation/stack": "^7.3.2",
+    "@tomtom-international/web-sdk-maps": "^6.25.0",
+    "@tomtom-international/web-sdk-services": "^6.25.0",
+    "dotenv": "^16.5.0",
+    "expo": "~53.0.9",
+    "expo-auth-session": "^6.1.5",
+    "expo-barcode-scanner": "^13.0.1",
+    "expo-camera": "^16.1.6",
+    "expo-linear-gradient": "^14.1.4",
+    "expo-location": "^18.1.5",
+    "expo-router": "^5.0.7",
+    "expo-secure-store": "^14.2.3",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
+    "react-native-qrcode-scanner": "^1.5.5",
+    "react-native-reanimated": "^3.17.5",
+    "react-native-webview": "^13.13.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}
