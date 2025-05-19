@@ -16,6 +16,9 @@ export interface TomTomMapProps {
     destination?: Coordinates;
     incidents?: Incident[];
     onMapReady?: () => void;
+    routeType?: 'fastest' | 'shortest' | 'eco';
+    transportMode?: 'car' | 'bike' | 'pedestrian';
+    isNavigating?: boolean;
 }
 
 export interface Trip {

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Icon, ICONS } from '../components/Icons';
 import { useNavigation } from '@react-navigation/native';
-//import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
+import { logger } from '../utils/logger';
 
 type LoginData = {
   username: string;
@@ -23,10 +24,19 @@ type RegisterData = {
   password: string;
 };
 
+const logAuthPanel = (action: string, data?: any) => {
+  console.log(`👤 [AUTH_PANEL] ${action}`, data ? data : '');
+};
+
+const logError = (action: string, error: any) => {
+  console.error(`❌ [AUTH_PANEL] ${action}`, error);
+};
+
 export default function AuthPanel() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  //const { login, register: registerUser, isLoading } = useAuth();
-  let isLoading=false;
+  const { login, register: registerUser, isLoading, error } = useAuth();
+  const navigation = useNavigation();
+
   const [loginForm, setLoginForm] = useState<LoginData>({
     username: '',
     password: '',
@@ -48,21 +58,30 @@ export default function AuthPanel() {
 
   const handleLoginSubmit = async () => {
     try {
-     // await login(loginForm);
+      logger.info('AUTH_PANEL', 'Tentative de connexion', { username: loginForm.username });
+      await login(loginForm);
+      logger.success('AUTH_PANEL', 'Connexion réussie, redirection vers Main');
+      // @ts-ignore - we'll handle typing for navigation later
+      navigation.navigate('Main');
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('AUTH_PANEL', 'Erreur de connexion', error);
     }
   };
 
   const handleRegisterSubmit = async () => {
     try {
-      //await registerUser(registerForm);
+      logger.info('AUTH_PANEL', 'Tentative d\'inscription', { 
+        username: registerForm.username,
+        email: registerForm.email 
+      });
+      await registerUser(registerForm);
+      logger.success('AUTH_PANEL', 'Inscription réussie, redirection vers Main');
+      // @ts-ignore - we'll handle typing for navigation later
+      navigation.navigate('Main');
     } catch (error) {
-      console.error('Register error:', error);
+      logger.error('AUTH_PANEL', 'Erreur d\'inscription', error);
     }
   };
-
-  console.log('Rendering AuthPanel, activeTab:', activeTab);
 
   return (
     <View style={styles.container}>
@@ -79,7 +98,7 @@ export default function AuthPanel() {
               styles.tabTriggerText,
               activeTab === 'login' ? styles.activeTabTriggerText : null
             ]}>
-              Login
+              Connexion
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -93,18 +112,22 @@ export default function AuthPanel() {
               styles.tabTriggerText,
               activeTab === 'register' ? styles.activeTabTriggerText : null
             ]}>
-              Register
+              Inscription
             </Text>
           </TouchableOpacity>
         </View>
 
-        {activeTab === 'login' && (
+        {error && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
+
+        {activeTab === 'login' ? (
           <View style={styles.tabContent}>
             <View style={styles.formField}>
-              <Text style={styles.formLabel}>Username</Text>
+              <Text style={styles.formLabel}>Nom d'utilisateur</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Enter your username"
+                placeholder="Entrez votre nom d'utilisateur"
                 placeholderTextColor="#9ca3af"
                 value={loginForm.username}
                 onChangeText={(text) => updateLoginForm('username', text)}
@@ -112,10 +135,10 @@ export default function AuthPanel() {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.formLabel}>Password</Text>
+              <Text style={styles.formLabel}>Mot de passe</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Enter your password"
+                placeholder="Entrez votre mot de passe"
                 placeholderTextColor="#9ca3af"
                 secureTextEntry
                 value={loginForm.password}
@@ -131,10 +154,10 @@ export default function AuthPanel() {
               {isLoading ? (
                 <View style={styles.buttonContent}>
                   <ActivityIndicator size="small" color="#fff" style={styles.buttonLoader} />
-                  <Text style={styles.buttonText}>Logging in...</Text>
+                  <Text style={styles.buttonText}>Connexion en cours...</Text>
                 </View>
               ) : (
-                <Text style={styles.buttonText}>Login</Text>
+                <Text style={styles.buttonText}>Se connecter</Text>
               )}
             </TouchableOpacity>
 
@@ -154,15 +177,13 @@ export default function AuthPanel() {
               </TouchableOpacity>
             </View>
           </View>
-        )}
-
-        {activeTab === 'register' && (
+        ) : (
           <View style={styles.tabContent}>
             <View style={styles.formField}>
-              <Text style={styles.formLabel}>Username</Text>
+              <Text style={styles.formLabel}>Nom d'utilisateur</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Choose a username"
+                placeholder="Choisissez un nom d'utilisateur"
                 placeholderTextColor="#9ca3af"
                 value={registerForm.username}
                 onChangeText={(text) => updateRegisterForm('username', text)}
@@ -173,7 +194,7 @@ export default function AuthPanel() {
               <Text style={styles.formLabel}>Email</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Enter your email"
+                placeholder="Entrez votre email"
                 placeholderTextColor="#9ca3af"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -183,10 +204,10 @@ export default function AuthPanel() {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.formLabel}>Password</Text>
+              <Text style={styles.formLabel}>Mot de passe</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Create a password"
+                placeholder="Créez un mot de passe"
                 placeholderTextColor="#9ca3af"
                 secureTextEntry
                 value={registerForm.password}
@@ -202,10 +223,10 @@ export default function AuthPanel() {
               {isLoading ? (
                 <View style={styles.buttonContent}>
                   <ActivityIndicator size="small" color="#fff" style={styles.buttonLoader} />
-                  <Text style={styles.buttonText}>Registering...</Text>
+                  <Text style={styles.buttonText}>Inscription en cours...</Text>
                 </View>
               ) : (
-                <Text style={styles.buttonText}>Register</Text>
+                <Text style={styles.buttonText}>S'inscrire</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -226,7 +247,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 24,
     borderRadius: 8,
-    backgroundColor: '#f1f5f9', 
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: 2,
   },
   tabTrigger: {
@@ -237,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   activeTabTrigger: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
@@ -247,10 +268,10 @@ const styles = StyleSheet.create({
   tabTriggerText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b', 
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   activeTabTriggerText: {
-    color: '#0f172a', 
+    color: '#fff',
   },
   tabContent: {
     paddingHorizontal: 4,
@@ -261,21 +282,21 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: "rgba(255, 255, 255, 0.7)", 
+    color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 8,
   },
   formInput: {
-    backgroundColor: '#f8fafc', 
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0', 
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 6,
     fontSize: 16,
-    color: '#0f172a', 
+    color: '#fff',
   },
   submitButton: {
-    backgroundColor: '#0070f3', 
+    backgroundColor: '#0070f3',
     paddingVertical: 12,
     borderRadius: 6,
     alignItems: 'center',
@@ -312,5 +333,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginLeft: 8,
+  },
+  errorText: {
+    color: '#ff5252',
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
   },
 });

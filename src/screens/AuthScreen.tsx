@@ -11,11 +11,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import AuthPanel from '../components/AuthPanel';
 import { ICONS, Icon } from '../components/Icons';
+import { useAuth } from '../hooks/useAuth';
+import { logger } from '../utils/logger';
 
 const { width, height } = Dimensions.get('window');
 
 export default function AuthScreen() {
   const navigation = useNavigation();
+  const { user, isLoading } = useAuth();
   
   const logoOpacity = useSharedValue(0);
   const logoTranslateX = useSharedValue(-20);
@@ -32,12 +35,15 @@ export default function AuthScreen() {
     logoTranslateX.value = withTiming(0, { duration: 600 });
   }, []);
 
-  //useEffect(() => {
-  //  if (user && !isLoading) {
-  //    // @ts-ignore - we'll handle typing for navigation later
-  //    navigation.navigate('Main');
-  //  }
-  //}, [user, isLoading, navigation]);
+  useEffect(() => {
+    if (user && !isLoading) {
+      logger.success('AUTH_SCREEN', 'Utilisateur connecté, redirection vers Main', { user });
+      // @ts-ignore - we'll handle typing for navigation later
+      navigation.navigate('Main');
+    } else {
+      logger.info('AUTH_SCREEN', 'État actuel', { user, isLoading });
+    }
+  }, [user, isLoading, navigation]);
 
   const features = [
     {

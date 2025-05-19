@@ -1,17 +1,17 @@
-import { Alert } from "react-native";
 import { getIncidentMarkersScript } from "../../utils/IncidentMarker";
 import { getRouteScript } from "../../utils/Route";
 import { Coordinates, Incident } from "../../utils/types";
 
-
-const TOMTOM_API_KEY = process.env.EXPO_PUBLIC_TOMTOM_API_KEY || 'YOUR_DEFAULT_API_KEY';
+const TOMTOM_API_KEY = process.env.EXPO_PUBLIC_TOMTOM_API_KEY || 'B1wMFo0iy5fLqkdk62FceZaj434OKd5G';
 
 export function generateMapHtml(
     currentLocation: Coordinates,
     destination?: Coordinates,
-    incidents: Incident[] = []
+    incidents: Incident[] = [],
+    routeType: 'fastest' | 'shortest' | 'eco' = 'fastest',
+    transportMode: 'car' | 'bike' | 'pedestrian' = 'car',
+    isNavigating: boolean = false
 ): string {
-  Alert.alert(TOMTOM_API_KEY)
     return `
     <!DOCTYPE html>
     <html>
@@ -49,10 +49,44 @@ export function generateMapHtml(
           });
           
           // Ajouter l'itinéraire si une destination est spécifiée
-          ${destination ? getRouteScript(currentLocation, destination, TOMTOM_API_KEY) : ''}
+          ${destination ? getRouteScript(currentLocation, destination, TOMTOM_API_KEY, routeType, transportMode) : ''}
           
           // Ajouter les incidents sur la carte
           ${incidents && incidents.length > 0 ? getIncidentMarkersScript(incidents) : ''}
+
+          // Gérer la navigation en temps réel
+          ${isNavigating ? `
+            let watchId;
+            function startNavigation() {
+              watchId = navigator.geolocation.watchPosition(
+                function(position) {
+                  const newLocation = [position.coords.longitude, position.coords.latitude];
+                  map.flyTo({
+                    center: newLocation,
+                    zoom: 15
+                  });
+                  
+                  // Mettre à jour le marqueur de position
+                  if (currentMarker) {
+                    currentMarker.setLngLat(newLocation);
+                  } else {
+                    currentMarker = new tt.Marker().setLngLat(newLocation).addTo(map);
+                  }
+                },
+                function(error) {
+                  console.error('Erreur de géolocalisation:', error);
+                },
+                {
+                  enableHighAccuracy: true,
+                  maximumAge: 0,
+                  timeout: 5000
+                }
+              );
+            }
+
+            let currentMarker;
+            startNavigation();
+          ` : ''}
         </script>
       </body>
     </html>

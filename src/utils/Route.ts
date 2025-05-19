@@ -3,17 +3,23 @@ import { Coordinates } from './types';
 export function getRouteScript(
     origin: Coordinates,
     destination: Coordinates,
-    apiKey: string
+    apiKey: string,
+    routeType: 'fastest' | 'shortest' | 'eco' = 'fastest',
+    transportMode: 'car' | 'bike' | 'pedestrian' = 'car'
 ): string {
-    return `
     const routeOptions = {
-      key: '${apiKey}',
-      locations: [
-        [${origin.longitude}, ${origin.latitude}],
-        [${destination.longitude}, ${destination.latitude}]
-      ],
-      computeBestOrder: false
+        key: apiKey,
+        locations: [
+            [origin.longitude, origin.latitude],
+            [destination.longitude, destination.latitude]
+        ],
+        computeBestOrder: false,
+        routeType: routeType,
+        travelMode: transportMode
     };
+
+    return `
+    const routeOptions = ${JSON.stringify(routeOptions)};
     
     tt.services.calculateRoute(routeOptions)
       .then(function(routeData) {
